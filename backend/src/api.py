@@ -18,25 +18,54 @@ CORS(app)
 '''
 # db_drop_and_create_all()
 
-## ROUTES
+# ROUTES
 '''
-@TODO implement endpoint
-    GET /drinks
-        it should be a public endpoint
-        it should contain only the drink.short() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
+GET /drinks
+    it should be a public endpoint
+    it should contain only the drink.short() data representation
+returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
+    or appropriate status code indicating reason for failure
 '''
 
 
+@app.route("/drinks")
+def retrieve_drinks():
+    all_drinks = Drink.query.all()
+    print(all_drinks)
+    drinks = [drink.short() for drink in all_drinks]
+
+    if len(drinks) == 0:
+        abort(404)
+
+    return jsonify({
+        "success": True,
+        "drinks": drinks
+    })
+
+
 '''
-@TODO implement endpoint
-    GET /drinks-detail
-        it should require the 'get:drinks-detail' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
+GET /drinks-detail
+    it should require the 'get:drinks-detail' permission
+    it should contain the drink.long() data representation
+returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
+    or appropriate status code indicating reason for failure
 '''
+
+
+@app.route("/drinks-detail")
+@requires_auth("get:drinks-detail")
+def retrieve_drinks_detail():
+    all_drinks = Drink.query.all()
+    print(all_drinks)
+    drinks = [drink.long() for drink in all_drinks]
+
+    if len(drinks) == 0:
+        abort(404)
+
+    return jsonify({
+        "success": True,
+        "drinks": drinks
+    })
 
 
 '''
@@ -75,36 +104,45 @@ CORS(app)
 '''
 
 
-## Error Handling
+# Error Handling
 '''
-Example error handling for unprocessable entity
+Error handling for 422 unprocessable entity
 '''
+
+
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
-
-'''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
-'''
-
-'''
-@TODO implement error handler for 404
-    error handler should conform to general task above 
-'''
+        "success": False,
+        "error": 422,
+        "message": "unprocessable"
+    }), 422
 
 
 '''
-@TODO implement error handler for AuthError
-    error handler should conform to general task above 
+Error handling for 404 not found
 '''
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "resource not found"
+    }), 404
+
+
+'''
+Error handler for 401 AuthError
+'''
+
+
+@app.errorhandler(401)
+def unauthorized(error):
+    print(error)
+    return jsonify({
+        "success": False,
+        "error": 401,
+        "message": str(error)
+    }), 401
