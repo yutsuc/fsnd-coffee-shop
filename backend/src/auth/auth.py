@@ -77,7 +77,6 @@ return true otherwise
 
 
 def check_permissions(permission, payload):
-    print("check permissions")
     if "permissions" not in payload:
         raise AuthError({
             "code": "invalid_claims",
