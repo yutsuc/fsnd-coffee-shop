@@ -164,6 +164,34 @@ def delete_drink(drink_id):
 
 # Error Handling
 '''
+Error handling for 400 bad request
+'''
+
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "bad request"
+    }), 400
+
+
+'''
+Error handling for 500 internal server error
+'''
+
+
+@app.errorhandler(400)
+def internal_server_error(error):
+    return jsonify({
+        "success": False,
+        "error": 500,
+        "message": "internal server error"
+    }), 500
+
+
+'''
 Error handling for 422 unprocessable entity
 '''
 

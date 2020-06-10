@@ -82,13 +82,13 @@ def check_permissions(permission, payload):
             "code": "invalid_claims",
             "description": "Permissions not included in JWT"
         }, 401)
-    
+
     if permission not in payload["permissions"]:
         raise AuthError({
             "code": "unauthorized",
             "description": "Permission not found"
         }, 401)
-    
+
     return True
 
 
@@ -123,7 +123,7 @@ def verify_decode_jwt(token):
                 "n": key["n"],
                 "e": key["e"]
             }
-    
+
     if rsa_key:
         try:
             payload = jwt.decode(
