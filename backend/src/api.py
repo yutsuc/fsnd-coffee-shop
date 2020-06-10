@@ -31,7 +31,6 @@ returns status code 200 and json {"success": True, "drinks": drinks} where drink
 @app.route("/drinks")
 def retrieve_drinks():
     all_drinks = Drink.query.all()
-    print(all_drinks)
     drinks = [drink.short() for drink in all_drinks]
 
     if len(drinks) == 0:
@@ -56,7 +55,6 @@ returns status code 200 and json {"success": True, "drinks": drinks} where drink
 @requires_auth("get:drinks-detail")
 def retrieve_drinks_detail():
     all_drinks = Drink.query.all()
-    print(all_drinks)
     drinks = [drink.long() for drink in all_drinks]
 
     if len(drinks) == 0:
@@ -69,39 +67,99 @@ def retrieve_drinks_detail():
 
 
 '''
-@TODO implement endpoint
-    POST /drinks
-        it should create a new row in the drinks table
-        it should require the 'post:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
-        or appropriate status code indicating reason for failure
+POST /drinks
+    it should create a new row in the drinks table
+    it should require the 'post:drinks' permission
+    it should contain the drink.long() data representation
+returns status code 200 and json {"success": True, "drinks": drink} where drink is an array containing only the newly created drink
+    or appropriate status code indicating reason for failure
 '''
 
 
-'''
-@TODO implement endpoint
-    PATCH /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should update the corresponding row for <id>
-        it should require the 'patch:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-        or appropriate status code indicating reason for failure
-'''
+@app.route("/drinks", methods=["POST"])
+@requires_auth("post:drinks")
+def create_new_drink():
+    req = request.get_json()
+    title = req.get("title", "")
+    recipe = json.dumps(req.get("recipe", ""))
+    drink = Drink(title=title, recipe=recipe)
+
+    try:
+        drink.insert()
+    except:
+        abort(422)
+
+    return jsonify({
+        "success": True,
+        "drinks": [drink.long()]
+    })
 
 
 '''
-@TODO implement endpoint
-    DELETE /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should delete the corresponding row for <id>
-        it should require the 'delete:drinks' permission
-    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-        or appropriate status code indicating reason for failure
+PATCH /drinks/<id>
+    where <id> is the existing model id
+    it should respond with a 404 error if <id> is not found
+    it should update the corresponding row for <id>
+    it should require the 'patch:drinks' permission
+    it should contain the drink.long() data representation
+returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
+    or appropriate status code indicating reason for failure
 '''
+
+
+@app.route("/drinks/<int:drink_id>", methods=["PATCH"])
+@requires_auth("patch:drinks")
+def update_drink(drink_id):
+    drink = Drink.query.get(drink_id)
+
+    if drink is None:
+        abort(404)
+
+    req = request.get_json()
+    title = req.get("title", "")
+    recipe = json.dumps(req.get("recipe", ""))
+    drink.title = title
+    drink.recipe = recipe
+
+    try:
+        drink.update()
+    except:
+        abort(422)
+
+    return jsonify({
+        "success": True,
+        "drinks": [drink.long()]
+    })
+
+
+'''
+DELETE /drinks/<id>
+    where <id> is the existing model id
+    it should respond with a 404 error if <id> is not found
+    it should delete the corresponding row for <id>
+    it should require the 'delete:drinks' permission
+returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
+    or appropriate status code indicating reason for failure
+'''
+
+
+@app.route("/drinks/<int:drink_id>", methods=["DELETE"])
+@requires_auth("delete:drinks")
+def delete_drink(drink_id):
+    drink = Drink.query.get(drink_id)
+
+    if drink is None:
+        abort(404)
+
+    try:
+        drink.delete()
+    except:
+        abort(422)
+
+    return jsonify({
+        "success": True,
+        "delete": drink_id
+    })
 
 
 # Error Handling
