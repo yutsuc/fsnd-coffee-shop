@@ -116,10 +116,13 @@ def update_drink(drink_id):
         abort(404)
 
     req = request.get_json()
-    title = req.get("title", "")
-    recipe = json.dumps(req.get("recipe", ""))
-    drink.title = title
-    drink.recipe = recipe
+    title = req.get("title", None)
+    recipe = req.get("recipe", None)
+        
+    if title is not None and title.strip():
+        drink.title = title
+    if recipe is not None:
+        drink.recipe = json.dumps(recipe)
 
     try:
         drink.update()
@@ -226,7 +229,6 @@ Error handler for 401 AuthError
 
 @app.errorhandler(401)
 def unauthorized(error):
-    print(error)
     return jsonify({
         "success": False,
         "error": 401,
