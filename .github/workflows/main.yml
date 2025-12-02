@@ -27,7 +27,7 @@ jobs:
           rm -f package-lock.json
           
           echo "Generating new package-lock.json..."
-          npm install --package-lock-only
+          npm install --package-lock-only --legacy-peer-deps
 
       - name: Commit and Push changes
         run: |
