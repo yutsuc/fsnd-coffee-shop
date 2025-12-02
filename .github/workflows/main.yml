@@ -1,0 +1,47 @@
+name: Regenerate Package Lock
+
+on:
+  workflow_dispatch: # Allows you to trigger this manually from the Actions tab
+
+jobs:
+  update-lockfile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to push the changes back to the repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      # 1. Remove package-lock.json
+      # 2. Run npm install --package-lock-only
+      - name: Regenerate Lockfile
+        working-directory: ./frontend
+        run: |
+          echo "Removing package-lock.json..."
+          rm -f package-lock.json
+          
+          echo "Generating new package-lock.json..."
+          npm install --package-lock-only
+
+      - name: Commit and Push changes
+        run: |
+          # Configure git to use the GitHub Actions bot identity
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Stage the new lockfile
+          git add frontend/package-lock.json
+          
+          # Check if there are actual changes before committing
+          if git diff --staged --quiet; then
+            echo "No changes detected in package-lock.json."
+          else
+            git commit -m "chore: regenerate package-lock.json"
+            git push
+          fi
